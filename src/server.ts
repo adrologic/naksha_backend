@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import { corsOrigins, env } from "./env.js";
+import { revalidateWebsite } from "./lib/revalidate.js";
 import { errorHandler } from "./middleware/error.js";
 import { healthRouter } from "./routes/health.js";
 import { projectsRouter } from "./routes/projects.js";
@@ -35,6 +36,18 @@ export function createServer() {
   );
   app.use(express.json({ limit: "2mb" }));
   app.use(morgan(env.NODE_ENV === "development" ? "dev" : "combined"));
+
+  app.use((req, res, next) => {
+    res.on("finish", () => {
+      const mutating = req.method === "POST" || req.method === "PUT" || req.method === "PATCH" || req.method === "DELETE";
+      const ok = res.statusCode >= 200 && res.statusCode < 300;
+      if (!mutating || !ok) return;
+      const p = req.path;
+      if (p.startsWith("/health") || p.startsWith("/uploads") || p.startsWith("/contact")) return;
+      revalidateWebsite({ layout: true });
+    });
+    next();
+  });
 
   app.get("/", (_req, res) => {
     res.json({ name: "naksha-backend", version: "0.2.0" });
