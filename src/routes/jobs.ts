@@ -25,4 +25,5 @@ export const jobsRouter = crudRouter({
   createSchema: create,
   updateSchema: update,
   hasSlug: true,
+  richTextFields: ["summary"],
 });

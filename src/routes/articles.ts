@@ -25,4 +25,5 @@ export const articlesRouter = crudRouter({
   updateSchema: update,
   hasSlug: true,
   orderBy: { publishedAt: "desc" },
+  richTextFields: ["excerpt", "body"],
 });

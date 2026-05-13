@@ -21,4 +21,5 @@ export const marketsRouter = crudRouter({
   createSchema: create,
   updateSchema: update,
   hasSlug: true,
+  richTextFields: ["summary", "body"],
 });

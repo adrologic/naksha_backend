@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { ZodSchema } from "zod";
 import { prisma } from "../db.js";
 import { asyncHandler } from "./asyncHandler.js";
+import { sanitizeRichTextFields } from "./sanitize.js";
 
 type ModelName =
   | "project"
@@ -21,6 +22,8 @@ type Options = {
   hasSlug?: boolean;
   /** Default sort. Defaults to `{ sortOrder: "asc" }`. */
   orderBy?: Record<string, "asc" | "desc">;
+  /** Field names that hold rich-text HTML; sanitized on create/update. */
+  richTextFields?: readonly string[];
 };
 
 /**
@@ -66,10 +69,15 @@ export function crudRouter(opts: Options) {
     }),
   );
 
+  const sanitize = (input: unknown): unknown => {
+    if (!opts.richTextFields || !input || typeof input !== "object") return input;
+    return sanitizeRichTextFields(input as Record<string, unknown>, opts.richTextFields);
+  };
+
   r.post(
     "/",
     asyncHandler(async (req, res) => {
-      const data = opts.createSchema.parse(req.body);
+      const data = opts.createSchema.parse(sanitize(req.body));
       const created = await m.create({ data });
       res.status(201).json(created);
     }),
@@ -78,7 +86,7 @@ export function crudRouter(opts: Options) {
   r.patch(
     "/:id",
     asyncHandler(async (req, res) => {
-      const data = opts.updateSchema.parse(req.body) as Record<string, unknown>;
+      const data = opts.updateSchema.parse(sanitize(req.body)) as Record<string, unknown>;
       const before = await m.findUnique({ where: { id: req.params.id } });
       if (!before) return res.status(404).json({ error: "not_found" });
 

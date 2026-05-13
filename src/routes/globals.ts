@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db.js";
 import { asyncHandler } from "../lib/asyncHandler.js";
+import { deepSanitizeHtmlStrings } from "../lib/sanitize.js";
 
 export const globalsRouter = Router();
 
@@ -29,10 +30,11 @@ globalsRouter.put(
   "/:key",
   asyncHandler(async (req, res) => {
     const { value } = upsertSchema.parse(req.body);
+    const cleaned = deepSanitizeHtmlStrings(value);
     const item = await prisma.global.upsert({
       where: { key: req.params.key },
-      update: { value: value as object },
-      create: { key: req.params.key, value: value as object },
+      update: { value: cleaned as object },
+      create: { key: req.params.key, value: cleaned as object },
     });
     res.json(item);
   }),

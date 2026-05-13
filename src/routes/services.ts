@@ -22,4 +22,5 @@ export const servicesRouter = crudRouter({
   createSchema: create,
   updateSchema: update,
   hasSlug: true,
+  richTextFields: ["summary", "body"],
 });

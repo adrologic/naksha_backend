@@ -31,4 +31,5 @@ export const projectsRouter = crudRouter({
   createSchema: create,
   updateSchema: update,
   hasSlug: true,
+  richTextFields: ["summary", "description"],
 });

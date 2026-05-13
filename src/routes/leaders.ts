@@ -21,4 +21,5 @@ export const leadersRouter = crudRouter({
   createSchema: create,
   updateSchema: update,
   hasSlug: true,
+  richTextFields: ["bio"],
 });

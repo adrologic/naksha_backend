@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db.js";
 import { asyncHandler } from "../lib/asyncHandler.js";
+import { deepSanitizeHtmlStrings } from "../lib/sanitize.js";
 
 export const pagesRouter = Router();
 
@@ -68,8 +69,9 @@ pagesRouter.post(
   "/",
   asyncHandler(async (req, res) => {
     const data = upsertSchema.parse(req.body);
+    const cleanBlocks = deepSanitizeHtmlStrings(data.blocks) as unknown[];
     const created = await prisma.page.create({
-      data: { ...data, blocks: data.blocks as Prisma.InputJsonValue },
+      data: { ...data, blocks: cleanBlocks as Prisma.InputJsonValue },
     });
     res.status(201).json(created);
   }),
@@ -79,7 +81,8 @@ pagesRouter.patch(
   "/:id",
   asyncHandler(async (req, res) => {
     const parsed = updateSchema.parse(req.body);
-    const { blocks, ...rest } = parsed;
+    const { blocks: rawBlocks, ...rest } = parsed;
+    const blocks = rawBlocks !== undefined ? (deepSanitizeHtmlStrings(rawBlocks) as unknown[]) : undefined;
     const before = await prisma.page.findUnique({ where: { id: req.params.id } });
     if (!before) return res.status(404).json({ error: "not_found" });
     const updated = await prisma.page.update({

@@ -15,4 +15,5 @@ export const testimonialsRouter = crudRouter({
   model: "testimonial",
   createSchema: create,
   updateSchema: update,
+  richTextFields: ["quote"],
 });
