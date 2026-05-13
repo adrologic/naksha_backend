@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { crudRouter } from "../lib/crud.js";
+import { seoFieldsShape } from "../lib/seoFields.js";
 
 const create = z.object({
   slug: z.string().min(1),
@@ -13,6 +14,7 @@ const create = z.object({
   seoTitle: z.string().nullable().optional(),
   seoDescription: z.string().nullable().optional(),
   seoOgImage: z.string().nullable().optional(),
+  ...seoFieldsShape,
   sortOrder: z.number().int().default(0),
 });
 const update = create.partial();

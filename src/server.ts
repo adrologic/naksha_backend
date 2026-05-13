@@ -20,6 +20,7 @@ import { mediaRouter } from "./routes/media.js";
 import { uploadsRouter } from "./routes/uploads.js";
 import { redirectsRouter } from "./routes/redirects.js";
 import { contactRouter } from "./routes/contact.js";
+import { seoRouter } from "./routes/seo.js";
 
 export function createServer() {
   const app = express();
@@ -72,6 +73,9 @@ export function createServer() {
   app.use("/uploads", uploadsRouter);
   app.use("/redirects", redirectsRouter);
   app.use("/contact", contactRouter);
+
+  // SEO management API (global settings, page overrides, schemas, content coverage).
+  app.use("/api/seo", seoRouter);
 
   app.use((_req, res) => {
     res.status(404).json({ error: "not_found" });

@@ -30,106 +30,145 @@ model MediaAsset {
 
 // ── Content collections ──────────────────────────────────────────────────────
 model Project {
-  id             String   @id @default(cuid())
-  slug           String   @unique
-  title          String
-  market         String
-  location       String
-  year           Int
-  client         String?
-  size           String?
-  duration       String?
-  summary        String
-  description    String   @default("")
-  coverImage     String?
-  gallery        Json     @default("[]") // [{ url, alt }]
-  highlights     Json     @default("[]") // string[]
-  seoTitle       String?
-  seoDescription String?
-  seoOgImage     String?
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  title             String
+  market            String
+  location          String
+  year              Int
+  client            String?
+  size              String?
+  duration          String?
+  summary           String
+  description       String   @default("")
+  coverImage        String?
+  gallery           Json     @default("[]") // [{ url, alt }]
+  highlights        Json     @default("[]") // string[]
+  seoTitle          String?
+  seoDescription    String?
+  seoOgImage        String?
+  seoKeywords       Json     @default("[]") // string[]
+  seoOgTitle        String?
+  seoOgDescription  String?
+  seoCanonicalUrl   String?
+  seoNoIndex        Boolean  @default(false)
+  seoNoFollow       Boolean  @default(false)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Service {
-  id             String   @id @default(cuid())
-  slug           String   @unique
-  title          String
-  summary        String
-  icon           String?
-  bullets        Json     @default("[]") // string[]
-  body           String   @default("")
-  seoTitle       String?
-  seoDescription String?
-  seoOgImage     String?
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  title             String
+  summary           String
+  icon              String?
+  bullets           Json     @default("[]") // string[]
+  body              String   @default("")
+  seoTitle          String?
+  seoDescription    String?
+  seoOgImage        String?
+  seoKeywords       Json     @default("[]") // string[]
+  seoOgTitle        String?
+  seoOgDescription  String?
+  seoCanonicalUrl   String?
+  seoNoIndex        Boolean  @default(false)
+  seoNoFollow       Boolean  @default(false)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Market {
-  id             String   @id @default(cuid())
-  slug           String   @unique
-  title          String
-  summary        String
-  image          String?
-  body           String   @default("")
-  seoTitle       String?
-  seoDescription String?
-  seoOgImage     String?
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  title             String
+  summary           String
+  image             String?
+  body              String   @default("")
+  seoTitle          String?
+  seoDescription    String?
+  seoOgImage        String?
+  seoKeywords       Json     @default("[]") // string[]
+  seoOgTitle        String?
+  seoOgDescription  String?
+  seoCanonicalUrl   String?
+  seoNoIndex        Boolean  @default(false)
+  seoNoFollow       Boolean  @default(false)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Article {
-  id             String   @id @default(cuid())
-  slug           String   @unique
-  title          String
-  excerpt        String
-  body           String   @default("")
-  cover          String?
-  author         String
-  category       String?
-  publishedAt    DateTime @default(now())
-  seoTitle       String?
-  seoDescription String?
-  seoOgImage     String?
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  title             String
+  excerpt           String
+  body              String   @default("")
+  cover             String?
+  author            String
+  category          String?
+  publishedAt       DateTime @default(now())
+  seoTitle          String?
+  seoDescription    String?
+  seoOgImage        String?
+  seoKeywords       Json     @default("[]") // string[]
+  seoOgTitle        String?
+  seoOgDescription  String?
+  seoCanonicalUrl   String?
+  seoNoIndex        Boolean  @default(false)
+  seoNoFollow       Boolean  @default(false)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Leader {
-  id        String   @id @default(cuid())
-  slug      String   @unique
-  name      String
-  role      String
-  bio       String   @default("")
-  portrait  String?
-  sortOrder Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  name              String
+  role              String
+  bio               String   @default("")
+  portrait          String?
+  seoTitle          String?
+  seoDescription    String?
+  seoOgImage        String?
+  seoKeywords       Json     @default("[]") // string[]
+  seoOgTitle        String?
+  seoOgDescription  String?
+  seoCanonicalUrl   String?
+  seoNoIndex        Boolean  @default(false)
+  seoNoFollow       Boolean  @default(false)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Job {
-  id               String   @id @default(cuid())
-  slug             String   @unique
-  title            String
-  department       String
-  location         String
-  type             String // Full-time | Contract | Apprenticeship
-  summary          String
-  responsibilities Json     @default("[]") // string[]
-  requirements     Json     @default("[]") // string[]
-  benefits         Json     @default("[]") // string[]
-  seoTitle         String?
-  seoDescription   String?
-  seoOgImage       String?
-  sortOrder        Int      @default(0)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                String   @id @default(cuid())
+  slug              String   @unique
+  title             String
+  department        String
+  location          String
+  type              String // Full-time | Contract | Apprenticeship
+  summary           String
+  responsibilities  Json     @default("[]") // string[]
+  requirements      Json     @default("[]") // string[]
+  benefits          Json     @default("[]") // string[]
+  seoTitle          String?
+  seoDescription    String?
+  seoOgImage        String?
+  seoKeywords       Json     @default("[]") // string[]
+  seoOgTitle        String?
+  seoOgDescription  String?
+  seoCanonicalUrl   String?
+  seoNoIndex        Boolean  @default(false)
+  seoNoFollow       Boolean  @default(false)
+  sortOrder         Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Location {
@@ -204,6 +243,25 @@ model Redirect {
   toPath     String
   statusCode Int      @default(301)
   createdAt  DateTime @default(now())
+}
+
+// ── Path-based SEO overrides (separate from CMS Page documents) ─────────────
+// One row per URL path the admin wants to control SEO for, including routes
+// that don't have a CMS Page document (e.g. /services, /contact, /legal/*).
+model SeoPage {
+  id              String   @id @default(cuid())
+  path            String   @unique
+  title           String?
+  description     String?
+  keywords        Json     @default("[]") // string[]
+  ogTitle         String?
+  ogDescription   String?
+  ogImage         String?
+  canonicalUrl    String?
+  noIndex         Boolean  @default(false)
+  noFollow        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 // ── Contact form submissions ─────────────────────────────────────────────────

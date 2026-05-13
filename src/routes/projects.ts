@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { crudRouter } from "../lib/crud.js";
+import { seoFieldsShape } from "../lib/seoFields.js";
 
 const galleryItem = z.object({ url: z.string(), alt: z.string().default("") });
 
@@ -20,6 +21,7 @@ const create = z.object({
   seoTitle: z.string().nullable().optional(),
   seoDescription: z.string().nullable().optional(),
   seoOgImage: z.string().nullable().optional(),
+  ...seoFieldsShape,
   sortOrder: z.number().int().default(0),
 });
 const update = create.partial();
