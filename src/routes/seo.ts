@@ -336,26 +336,32 @@ function hasSEO(item: WithSEO): boolean {
   return Boolean(item.seoTitle && item.seoDescription);
 }
 
+// All SEO columns the admin Content SEO modal needs in one place — keeps the
+// /content response shape consistent across collections.
+const contentSeoSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  seoTitle: true,
+  seoDescription: true,
+  seoOgImage: true,
+  seoKeywords: true,
+  seoOgTitle: true,
+  seoOgDescription: true,
+  seoCanonicalUrl: true,
+  seoNoIndex: true,
+  seoNoFollow: true,
+  updatedAt: true,
+} as const;
+
 seoRouter.get(
   "/content",
   asyncHandler(async (_req, res) => {
     const [projects, services, articles, markets] = await Promise.all([
-      prisma.project.findMany({
-        orderBy: { sortOrder: "asc" },
-        select: { id: true, slug: true, title: true, seoTitle: true, seoDescription: true, seoOgImage: true, updatedAt: true },
-      }),
-      prisma.service.findMany({
-        orderBy: { sortOrder: "asc" },
-        select: { id: true, slug: true, title: true, seoTitle: true, seoDescription: true, seoOgImage: true, updatedAt: true },
-      }),
-      prisma.article.findMany({
-        orderBy: { publishedAt: "desc" },
-        select: { id: true, slug: true, title: true, seoTitle: true, seoDescription: true, seoOgImage: true, updatedAt: true },
-      }),
-      prisma.market.findMany({
-        orderBy: { sortOrder: "asc" },
-        select: { id: true, slug: true, title: true, seoTitle: true, seoDescription: true, seoOgImage: true, updatedAt: true },
-      }),
+      prisma.project.findMany({ orderBy: { sortOrder: "asc" }, select: contentSeoSelect }),
+      prisma.service.findMany({ orderBy: { sortOrder: "asc" }, select: contentSeoSelect }),
+      prisma.article.findMany({ orderBy: { publishedAt: "desc" }, select: contentSeoSelect }),
+      prisma.market.findMany({ orderBy: { sortOrder: "asc" }, select: contentSeoSelect }),
     ]);
     const decorate = <T extends WithSEO>(items: T[]) =>
       items.map((it) => ({ ...it, hasSEO: hasSEO(it) }));
