@@ -287,6 +287,42 @@ seoRouter.delete(
   }),
 );
 
+// PUT /pages/by-path/:path → upsert by path. Used by surfaces that already
+// know the URL (e.g. the Pages-collection edit form, which knows page.path)
+// so they can sync their SEO fields with the SEO admin's path-keyed row
+// without first looking up the SeoPage id.
+seoRouter.put(
+  "/pages/by-path/:path(*)",
+  asyncHandler(async (req, res) => {
+    const decoded = decodeURIComponent(req.params.path ?? "");
+    const path = decoded.startsWith("/") ? decoded : `/${decoded}`;
+    const data = seoPageUpdate.parse(req.body ?? {});
+    const { keywords, ...rest } = data;
+    // For upsert, drop the path from `rest` if present (we use the URL param).
+    delete (rest as Record<string, unknown>).path;
+    const page = await prisma.seoPage.upsert({
+      where: { path },
+      update: {
+        ...rest,
+        ...(keywords !== undefined ? { keywords: keywords as Prisma.InputJsonValue } : {}),
+      },
+      create: {
+        path,
+        title: rest.title ?? null,
+        description: rest.description ?? null,
+        ogTitle: rest.ogTitle ?? null,
+        ogDescription: rest.ogDescription ?? null,
+        ogImage: rest.ogImage ?? null,
+        canonicalUrl: rest.canonicalUrl ?? null,
+        noIndex: rest.noIndex ?? false,
+        noFollow: rest.noFollow ?? false,
+        keywords: (keywords ?? []) as Prisma.InputJsonValue,
+      },
+    });
+    res.json({ page });
+  }),
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // /api/seo/schemas  — LocalBusiness + FAQ slice of seoSettings
 // ─────────────────────────────────────────────────────────────────────────────
