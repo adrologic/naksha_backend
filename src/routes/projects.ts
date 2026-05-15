@@ -16,6 +16,7 @@ const create = z.object({
   summary: z.string().min(1),
   description: z.string().default(""),
   coverImage: z.string().nullable().optional(),
+  coverImageAlt: z.string().nullable().optional(),
   gallery: z.array(galleryItem).default([]),
   highlights: z.array(z.string()).default([]),
   seoTitle: z.string().nullable().optional(),

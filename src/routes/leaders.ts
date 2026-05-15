@@ -8,6 +8,7 @@ const create = z.object({
   role: z.string().min(1),
   bio: z.string().default(""),
   portrait: z.string().nullable().optional(),
+  portraitAlt: z.string().nullable().optional(),
   seoTitle: z.string().nullable().optional(),
   seoDescription: z.string().nullable().optional(),
   seoOgImage: z.string().nullable().optional(),

@@ -8,6 +8,7 @@ const create = z.object({
   excerpt: z.string().min(1),
   body: z.string().default(""),
   cover: z.string().nullable().optional(),
+  coverAlt: z.string().nullable().optional(),
   author: z.string().min(1),
   category: z.string().nullable().optional(),
   publishedAt: z.coerce.date().optional(),

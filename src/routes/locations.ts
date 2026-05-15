@@ -8,6 +8,7 @@ const create = z.object({
   phone: z.string().nullable().optional(),
   email: z.string().email().nullable().optional(),
   image: z.string().nullable().optional(),
+  imageAlt: z.string().nullable().optional(),
   sortOrder: z.number().int().default(0),
 });
 const update = create.partial();

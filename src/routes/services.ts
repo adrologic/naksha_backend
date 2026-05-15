@@ -7,6 +7,7 @@ const create = z.object({
   title: z.string().min(1),
   summary: z.string().min(1),
   icon: z.string().nullable().optional(),
+  iconAlt: z.string().nullable().optional(),
   bullets: z.array(z.string()).default([]),
   body: z.string().default(""),
   seoTitle: z.string().nullable().optional(),

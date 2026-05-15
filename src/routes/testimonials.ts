@@ -7,6 +7,7 @@ const create = z.object({
   role: z.string().nullable().optional(),
   company: z.string().nullable().optional(),
   avatar: z.string().nullable().optional(),
+  avatarAlt: z.string().nullable().optional(),
   sortOrder: z.number().int().default(0),
 });
 const update = create.partial();
