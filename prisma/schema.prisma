@@ -82,28 +82,6 @@ model Service {
   updatedAt         DateTime @updatedAt
 }
 
-model Market {
-  id                String   @id @default(cuid())
-  slug              String   @unique
-  title             String
-  summary           String
-  image             String?
-  imageAlt          String?
-  body              String   @default("")
-  seoTitle          String?
-  seoDescription    String?
-  seoOgImage        String?
-  seoKeywords       Json     @default("[]") // string[]
-  seoOgTitle        String?
-  seoOgDescription  String?
-  seoCanonicalUrl   String?
-  seoNoIndex        Boolean  @default(false)
-  seoNoFollow       Boolean  @default(false)
-  sortOrder         Int      @default(0)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-}
-
 model Article {
   id                String   @id @default(cuid())
   slug              String   @unique
@@ -137,31 +115,6 @@ model Leader {
   bio               String   @default("")
   portrait          String?
   portraitAlt       String?
-  seoTitle          String?
-  seoDescription    String?
-  seoOgImage        String?
-  seoKeywords       Json     @default("[]") // string[]
-  seoOgTitle        String?
-  seoOgDescription  String?
-  seoCanonicalUrl   String?
-  seoNoIndex        Boolean  @default(false)
-  seoNoFollow       Boolean  @default(false)
-  sortOrder         Int      @default(0)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-}
-
-model Job {
-  id                String   @id @default(cuid())
-  slug              String   @unique
-  title             String
-  department        String
-  location          String
-  type              String // Full-time | Contract | Apprenticeship
-  summary           String
-  responsibilities  Json     @default("[]") // string[]
-  requirements      Json     @default("[]") // string[]
-  benefits          Json     @default("[]") // string[]
   seoTitle          String?
   seoDescription    String?
   seoOgImage        String?

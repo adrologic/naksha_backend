@@ -1,6 +1,6 @@
 import { prisma } from "../db.js";
 
-type InternalDocType = "page" | "project" | "service" | "market" | "article" | "job" | "location";
+type InternalDocType = "page" | "project" | "service" | "article" | "location";
 
 type InternalDoc = {
   id: string;
@@ -23,12 +23,8 @@ function url(type: InternalDocType, slug: string, pagePath?: string): string {
       return `/projects/${slug}`;
     case "service":
       return `/services/${slug}`;
-    case "market":
-      return `/markets/${slug}`;
     case "article":
       return `/insights/${slug}`;
-    case "job":
-      return `/careers/${slug}`;
     case "location":
       return `/locations/${slug}`;
   }
@@ -37,13 +33,11 @@ function url(type: InternalDocType, slug: string, pagePath?: string): string {
 export async function getInternalLinksIndex(): Promise<Index> {
   if (cached && Date.now() - cached.at < TTL_MS) return cached.data;
 
-  const [pages, projects, services, markets, articles, jobs, locations] = await Promise.all([
+  const [pages, projects, services, articles, locations] = await Promise.all([
     prisma.page.findMany({ select: { id: true, key: true, path: true, title: true }, orderBy: { path: "asc" } }),
     prisma.project.findMany({ select: { id: true, slug: true, title: true }, orderBy: { sortOrder: "asc" } }),
     prisma.service.findMany({ select: { id: true, slug: true, title: true }, orderBy: { sortOrder: "asc" } }),
-    prisma.market.findMany({ select: { id: true, slug: true, title: true }, orderBy: { sortOrder: "asc" } }),
     prisma.article.findMany({ select: { id: true, slug: true, title: true }, orderBy: { sortOrder: "asc" } }),
-    prisma.job.findMany({ select: { id: true, slug: true, title: true }, orderBy: { sortOrder: "asc" } }),
     prisma.location.findMany({ select: { id: true, slug: true, city: true }, orderBy: { sortOrder: "asc" } }),
   ]);
 
@@ -51,9 +45,7 @@ export async function getInternalLinksIndex(): Promise<Index> {
     page: pages.map((p) => ({ id: p.id, type: "page", title: p.title, slug: p.key, url: url("page", p.key, p.path) })),
     project: projects.map((p) => ({ id: p.id, type: "project", title: p.title, slug: p.slug, url: url("project", p.slug) })),
     service: services.map((p) => ({ id: p.id, type: "service", title: p.title, slug: p.slug, url: url("service", p.slug) })),
-    market: markets.map((p) => ({ id: p.id, type: "market", title: p.title, slug: p.slug, url: url("market", p.slug) })),
     article: articles.map((p) => ({ id: p.id, type: "article", title: p.title, slug: p.slug, url: url("article", p.slug) })),
-    job: jobs.map((p) => ({ id: p.id, type: "job", title: p.title, slug: p.slug, url: url("job", p.slug) })),
     location: locations.map((p) => ({ id: p.id, type: "location", title: p.city, slug: p.slug, url: url("location", p.slug) })),
   };
 

@@ -100,17 +100,6 @@ const RAJASTHAN_CITIES = [
   "Alwar", "Bhilwara", "Sikar", "Mount Abu", "Pushkar", "Chittorgarh",
 ];
 
-const MARKETS = [
-  { slug: "aviation", title: "Aviation", short: "Terminals, hangars, and airside facilities engineered for round-the-clock operations.", capabilities: ["Terminal expansions and renovations", "Cargo and maintenance hangars", "Air traffic and control facilities", "Airside support infrastructure"] },
-  { slug: "commercial", title: "Commercial", short: "Office towers, mixed-use developments, and retail destinations across Rajasthan.", capabilities: ["Grade A office buildings", "Mixed-use developments", "Retail and hospitality interiors", "Tenant fit-outs and core-and-shell"] },
-  { slug: "education", title: "Education", short: "Schools, universities, and research campuses built around how people actually learn.", capabilities: ["K-12 academic buildings", "University libraries and labs", "Research and innovation centers", "Student housing and recreation"] },
-  { slug: "healthcare", title: "Healthcare", short: "Hospitals, diagnostic centers, and specialty clinics held to clinical-grade tolerances.", capabilities: ["Acute-care hospital additions", "Operating theaters and ICUs", "Outpatient and diagnostic centers", "Medical office and research wings"] },
-  { slug: "pharmaceutical", title: "Pharmaceutical", short: "GMP manufacturing, R&D labs, and cleanroom environments held to regulatory standards.", capabilities: ["GMP manufacturing facilities", "Cleanroom and lab fit-outs", "Process utility infrastructure", "Validation and commissioning support"] },
-  { slug: "sports", title: "Sports", short: "Stadiums, training facilities, and recreational venues for athletes and fans alike.", capabilities: ["Stadium and arena construction", "Training and performance centers", "Aquatic and indoor facilities", "Spectator and broadcast infrastructure"] },
-  { slug: "government", title: "Government", short: "Civic, judicial, and infrastructure projects delivered to public-sector standards.", capabilities: ["Civic centers and administrative buildings", "Judicial and correctional facilities", "Transportation infrastructure", "Public realm and streetscape works"] },
-  { slug: "data-centers", title: "Data Centers", short: "Mission-critical hyperscale and colocation facilities for the digital economy.", capabilities: ["Hyperscale data center cores", "Colocation fit-outs", "Power and cooling infrastructure", "Network and meet-me rooms"] },
-];
-
 const SERVICES = [
   { slug: "construction-management", title: "Construction Management", short: "End-to-end management of complex builds, from groundbreaking to handover.", outcomes: ["Single point of accountability through delivery", "Integrated cost and schedule controls", "Transparent reporting cadence with the owner", "Risk-managed trade coordination"] },
   { slug: "general-contracting", title: "General Contracting", short: "Lump-sum or GMP delivery with the trade depth Rajasthan projects demand.", outcomes: ["Competitive, scope-tight bids", "Self-perform capability on key trades", "Schedule and budget certainty", "Quality control across every package"] },
@@ -156,17 +145,6 @@ const ARTICLE_TITLES = [
   { t: "Risk Modeling in Mid-Sized Construction", c: "Operations" },
 ];
 
-const JOB_TITLES = [
-  { t: "Senior Project Manager", d: "Operations" },
-  { t: "Site Safety Officer", d: "Operations" },
-  { t: "Estimator (Preconstruction)", d: "Preconstruction" },
-  { t: "MEP Coordinator", d: "Engineering" },
-  { t: "Quantity Surveyor", d: "Commercial" },
-  { t: "Sustainability Lead", d: "Sustainability" },
-  { t: "Junior Architect (Design-Build)", d: "Design" },
-  { t: "Apprentice Carpenter", d: "Trades" },
-];
-
 const LOCATIONS = [
   { slug: "jaipur", city: "Jaipur (HQ)", address: ["Plot 12, Civil Lines", "Jaipur, Rajasthan 302006"], phone: "+91 98765 43210", email: "jaipur@nakshaconstruction.example" },
   { slug: "udaipur", city: "Udaipur", address: ["28 Lake View Marg", "Udaipur, Rajasthan 313001"], phone: "+91 98765 43211", email: "udaipur@nakshaconstruction.example" },
@@ -185,18 +163,6 @@ const TESTIMONIALS = [
 // ─────────────────────────────────────────────────────────────────────────────
 // Seeders
 // ─────────────────────────────────────────────────────────────────────────────
-async function seedMarkets() {
-  console.log("→ Markets");
-  await pmap(MARKETS, 4, async (m, i) => {
-    const image = await pushImage(picsum(`market-${m.slug}`, 1600, 1000), `naksha/markets/${m.slug}`, ["market"]);
-    await prisma.market.upsert({
-      where: { slug: m.slug },
-      update: { title: m.title, summary: m.short, image, body: LOREM.long, sortOrder: i },
-      create: { slug: m.slug, title: m.title, summary: m.short, image, body: LOREM.long, sortOrder: i },
-    });
-  });
-}
-
 async function seedServices() {
   console.log("→ Services");
   await pmap(SERVICES, 4, async (s, i) => {
@@ -310,41 +276,6 @@ async function seedArticles() {
   });
 }
 
-async function seedJobs() {
-  console.log("→ Jobs");
-  for (let i = 0; i < JOB_TITLES.length; i++) {
-    const j = JOB_TITLES[i];
-    const slug = j.t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    const type = i === 7 ? "Apprenticeship" : i === 4 ? "Contract" : "Full-time";
-    const data = {
-      title: j.t,
-      department: j.d,
-      location: RAJASTHAN_CITIES[i % RAJASTHAN_CITIES.length] + ", India",
-      type,
-      summary: LOREM.medium,
-      responsibilities: [
-        "Quality-first delivery rooted in 11 years of regional expertise",
-        "Integrated preconstruction and value-engineering workflows",
-        "Sustainable material sourcing across every project tier",
-      ] as Prisma.InputJsonValue,
-      requirements: [
-        "5+ years delivering construction projects in Rajasthan",
-        "Strong client and stakeholder management",
-        "Hands-on with cost and schedule controls",
-      ] as Prisma.InputJsonValue,
-      benefits: [
-        "Comprehensive medical and dental cover",
-        "Annual professional development budget",
-        "Hybrid working where the role allows",
-        "Performance-linked annual bonus",
-        "Family leave above statutory minimums",
-      ] as Prisma.InputJsonValue,
-      sortOrder: i,
-    };
-    await prisma.job.upsert({ where: { slug }, update: data, create: { slug, ...data } });
-  }
-}
-
 async function seedLocations() {
   console.log("→ Locations");
   await pmap(LOCATIONS, 4, async (l, i) => {
@@ -425,7 +356,6 @@ async function seedPages() {
           { value: "6M", label: "Sq. ft. built" },
         ]},
         { type: "intro", heading: "What we do", body: LOREM.long },
-        { type: "marketsGrid", source: "markets" },
         { type: "projectsFeatured", source: "projects", limit: 6 },
         { type: "testimonials", source: "testimonials" },
         { type: "cta", heading: "Tell us what you're planning.", ctaLabel: "Contact us", ctaHref: "/contact" },
@@ -461,49 +391,12 @@ async function seedPages() {
       ],
     },
     {
-      key: "markets-index",
-      path: "/markets",
-      title: "Markets",
-      blocks: [
-        { type: "hero", title: "Markets", subtitle: "The sectors we build for." },
-        { type: "marketsGrid", source: "markets" },
-      ],
-    },
-    {
       key: "projects-index",
       path: "/projects",
       title: "Projects",
       blocks: [
         { type: "hero", title: "Projects", subtitle: "Selected work across Rajasthan." },
         { type: "projectsGrid", source: "projects" },
-      ],
-    },
-    {
-      key: "insights-index",
-      path: "/insights",
-      title: "Insights",
-      blocks: [
-        { type: "hero", title: "Insights", subtitle: "Field notes and frameworks." },
-        { type: "articlesGrid", source: "articles" },
-      ],
-    },
-    {
-      key: "careers-index",
-      path: "/careers",
-      title: "Careers",
-      blocks: [
-        { type: "hero", title: "Careers", subtitle: "Build with people who care." },
-        { type: "intro", heading: "Why Naksha", body: LOREM.long },
-        { type: "openRoles", source: "jobs" },
-      ],
-    },
-    {
-      key: "careers-openings",
-      path: "/careers/openings",
-      title: "Open roles",
-      blocks: [
-        { type: "hero", title: "Roles we're hiring for.", subtitle: LOREM.medium },
-        { type: "openRoles", source: "jobs", filterable: true },
       ],
     },
     {
@@ -591,37 +484,15 @@ async function seedGlobals() {
   const navbar = {
     cta: { label: "Start a project", href: "/contact" },
     items: [
-      {
-        label: "About",
-        href: "/about",
-        children: [
-          { label: "Who We Are", href: "/about" },
-          { label: "Leadership", href: "/about#leadership" },
-          { label: "Our Story", href: "/about#history" },
-          { label: "Locations", href: "/locations" },
-          { label: "Sustainability", href: "/sustainability" },
-        ],
-      },
-      {
-        label: "Markets",
-        href: "/markets",
-        children: MARKETS.map((m) => ({ label: m.title, href: `/markets/${m.slug}` })),
-      },
+      { label: "Home", href: "/" },
+      { label: "About", href: "/about" },
       {
         label: "Services",
         href: "/services",
         children: SERVICES.map((s) => ({ label: s.title, href: `/services/${s.slug}` })),
       },
       { label: "Projects", href: "/projects" },
-      { label: "Insights", href: "/insights" },
-      {
-        label: "Careers",
-        href: "/careers",
-        children: [
-          { label: "Why Naksha", href: "/careers/why-naksha" },
-          { label: "Open Roles", href: "/careers/openings" },
-        ],
-      },
+      { label: "Contact", href: "/contact" },
     ],
   };
 
@@ -638,22 +509,17 @@ async function seedGlobals() {
         links: [
           { label: "About", href: "/about" },
           { label: "Leadership", href: "/about#leadership" },
-          { label: "Markets", href: "/markets" },
           { label: "Sustainability", href: "/sustainability" },
           { label: "Locations", href: "/locations" },
         ],
       },
       {
         heading: "Services",
-        links: SERVICES.slice(0, 4)
-          .map((s) => ({ label: s.title, href: `/services/${s.slug}` }))
-          .concat([{ label: "Insights", href: "/insights" }]),
+        links: SERVICES.slice(0, 4).map((s) => ({ label: s.title, href: `/services/${s.slug}` })),
       },
       {
-        heading: "Careers",
+        heading: "Contact",
         links: [
-          { label: "Why Naksha", href: "/careers/why-naksha" },
-          { label: "Open Roles", href: "/careers/openings" },
           { label: "Contact", href: "/contact" },
           { label: "Press", href: "/contact" },
         ],
@@ -697,12 +563,10 @@ async function seedGlobals() {
 // ─────────────────────────────────────────────────────────────────────────────
 async function main() {
   console.log(SKIP_UPLOADS ? "(SEED_SKIP_UPLOADS=1 — keeping remote URLs)" : "Uploading placeholder images to Cloudinary…");
-  await seedMarkets();
   await seedServices();
   await seedProjects();
   await seedLeaders();
   await seedArticles();
-  await seedJobs();
   await seedLocations();
   await seedTestimonials();
   await seedPages();

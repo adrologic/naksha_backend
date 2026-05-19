@@ -393,11 +393,10 @@ const contentSeoSelect = {
 seoRouter.get(
   "/content",
   asyncHandler(async (_req, res) => {
-    const [projects, services, articles, markets] = await Promise.all([
+    const [projects, services, articles] = await Promise.all([
       prisma.project.findMany({ orderBy: { sortOrder: "asc" }, select: contentSeoSelect }),
       prisma.service.findMany({ orderBy: { sortOrder: "asc" }, select: contentSeoSelect }),
       prisma.article.findMany({ orderBy: { publishedAt: "desc" }, select: contentSeoSelect }),
-      prisma.market.findMany({ orderBy: { sortOrder: "asc" }, select: contentSeoSelect }),
     ]);
     const decorate = <T extends WithSEO>(items: T[]) =>
       items.map((it) => ({ ...it, hasSEO: hasSEO(it) }));
@@ -405,7 +404,6 @@ seoRouter.get(
       projects: decorate(projects),
       services: decorate(services),
       articles: decorate(articles),
-      markets: decorate(markets),
     });
   }),
 );
@@ -415,9 +413,7 @@ const collectionMap = {
   projects: "project",
   services: "service",
   articles: "article",
-  markets: "market",
   leaders: "leader",
-  jobs: "job",
 } as const;
 
 for (const [urlSegment, modelKey] of Object.entries(collectionMap)) {
@@ -522,23 +518,6 @@ seoRouter.post(
       reports.articles = { updated, total: items.length };
     }
 
-    // Markets
-    {
-      const items = await prisma.market.findMany();
-      let updated = 0;
-      for (const it of items) {
-        if (it.seoTitle && it.seoDescription) continue;
-        const title = it.seoTitle ?? `${it.title} | ${siteName}`;
-        const description = it.seoDescription ?? clip(it.summary || it.body || it.title, 155);
-        await prisma.market.update({
-          where: { id: it.id },
-          data: { seoTitle: title, seoDescription: description },
-        });
-        updated += 1;
-      }
-      reports.markets = { updated, total: items.length };
-    }
-
     res.json({ reports });
   }),
 );
@@ -552,12 +531,11 @@ seoRouter.get(
   asyncHandler(async (_req, res) => {
     const settings = await loadSettings();
 
-    const [seoPages, projects, services, articles, markets] = await Promise.all([
+    const [seoPages, projects, services, articles] = await Promise.all([
       prisma.seoPage.count(),
       prisma.project.findMany({ select: { seoTitle: true, seoDescription: true } }),
       prisma.service.findMany({ select: { seoTitle: true, seoDescription: true } }),
       prisma.article.findMany({ select: { seoTitle: true, seoDescription: true } }),
-      prisma.market.findMany({ select: { seoTitle: true, seoDescription: true } }),
     ]);
 
     const cov = (rows: { seoTitle: string | null; seoDescription: string | null }[]) => {
@@ -571,7 +549,6 @@ seoRouter.get(
       projects: cov(projects),
       services: cov(services),
       articles: cov(articles),
-      markets: cov(markets),
       tracking: {
         googleSiteVerification: Boolean(settings.googleSiteVerification),
         googleAnalyticsId: Boolean(settings.googleAnalyticsId),

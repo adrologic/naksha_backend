@@ -8,10 +8,8 @@ import { errorHandler } from "./middleware/error.js";
 import { healthRouter } from "./routes/health.js";
 import { projectsRouter } from "./routes/projects.js";
 import { servicesRouter } from "./routes/services.js";
-import { marketsRouter } from "./routes/markets.js";
 import { articlesRouter } from "./routes/articles.js";
 import { leadersRouter } from "./routes/leaders.js";
-import { jobsRouter } from "./routes/jobs.js";
 import { locationsRouter } from "./routes/locations.js";
 import { testimonialsRouter } from "./routes/testimonials.js";
 import { pagesRouter } from "./routes/pages.js";
@@ -60,10 +58,8 @@ export function createServer() {
   // Content collections
   app.use("/projects", projectsRouter);
   app.use("/services", servicesRouter);
-  app.use("/markets", marketsRouter);
   app.use("/articles", articlesRouter);
   app.use("/leaders", leadersRouter);
-  app.use("/jobs", jobsRouter);
   app.use("/locations", locationsRouter);
   app.use("/testimonials", testimonialsRouter);
 
