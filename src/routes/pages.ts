@@ -16,6 +16,8 @@ const upsertSchema = z.object({
   seoDescription: z.string().nullable().optional(),
   seoOgImage: z.string().nullable().optional(),
   seoKeywords: z.string().nullable().optional(),
+  seoPrimaryKeyword: z.string().nullable().optional(),
+  seoSecondaryKeywords: z.string().nullable().optional(),
   seoRobots: z.string().nullable().optional(),
   seoCanonical: z.string().nullable().optional(),
   ogTitle: z.string().nullable().optional(),

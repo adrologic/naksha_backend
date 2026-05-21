@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db.js";
 import { asyncHandler } from "../lib/asyncHandler.js";
+import { secondaryKeywordsField, sanitizeSecondaryKeywords } from "../lib/seoFields.js";
 
 export const seoRouter = Router();
 
@@ -16,6 +17,8 @@ const collectionSeoSchema = z.object({
   seoDescription: z.string().nullable().optional(),
   seoOgImage: z.string().nullable().optional(),
   seoKeywords: z.array(z.string()).optional(),
+  seoPrimaryKeyword: z.string().nullable().optional(),
+  seoSecondaryKeywords: secondaryKeywordsField.optional(),
   seoOgTitle: z.string().nullable().optional(),
   seoOgDescription: z.string().nullable().optional(),
   seoCanonicalUrl: z.string().nullable().optional(),
@@ -28,7 +31,10 @@ const seoPageCreate = z.object({
   path: z.string().min(1).regex(/^\//, "must start with /"),
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
+  // Legacy single keyword list — kept for one release.
   keywords: z.array(z.string()).default([]),
+  primaryKeyword: z.string().nullable().optional(),
+  secondaryKeywords: secondaryKeywordsField,
   ogTitle: z.string().nullable().optional(),
   ogDescription: z.string().nullable().optional(),
   ogImage: z.string().nullable().optional(),
@@ -87,6 +93,8 @@ const seoSettingsSchema = z.object({
   titleTemplate: z.string().optional(),
   defaultDescription: z.string().optional(),
   defaultKeywords: z.array(z.string()).optional(),
+  defaultPrimaryKeyword: z.string().optional(),
+  defaultSecondaryKeywords: z.array(z.string()).optional(),
   defaultOgImage: z.string().optional(),
   favicon: z.string().optional(),
   appleTouchIcon: z.string().optional(),
@@ -125,6 +133,13 @@ const DEFAULT_SETTINGS = {
     "renovation contractor Jaipur",
     "industrial construction India",
     "construction management Rajasthan",
+  ],
+  defaultPrimaryKeyword: "building construction company Jaipur",
+  defaultSecondaryKeywords: [
+    "construction services Jaipur",
+    "design-build contractor Rajasthan",
+    "commercial construction Jaipur",
+    "turnkey construction Jaipur",
   ],
   defaultOgImage: "",
   favicon: "",
@@ -257,7 +272,11 @@ seoRouter.post(
   asyncHandler(async (req, res) => {
     const data = seoPageCreate.parse(req.body);
     const created = await prisma.seoPage.create({
-      data: { ...data, keywords: data.keywords as Prisma.InputJsonValue },
+      data: {
+        ...data,
+        keywords: data.keywords as Prisma.InputJsonValue,
+        secondaryKeywords: data.secondaryKeywords as Prisma.InputJsonValue,
+      },
     });
     res.status(201).json({ page: created });
   }),
@@ -267,12 +286,15 @@ seoRouter.patch(
   "/pages/:id",
   asyncHandler(async (req, res) => {
     const data = seoPageUpdate.parse(req.body);
-    const { keywords, ...rest } = data;
+    const { keywords, secondaryKeywords, ...rest } = data;
     const page = await prisma.seoPage.update({
       where: { id: req.params.id },
       data: {
         ...rest,
         ...(keywords !== undefined ? { keywords: keywords as Prisma.InputJsonValue } : {}),
+        ...(secondaryKeywords !== undefined
+          ? { secondaryKeywords: secondaryKeywords as Prisma.InputJsonValue }
+          : {}),
       },
     });
     res.json({ page });
@@ -297,7 +319,7 @@ seoRouter.put(
     const decoded = decodeURIComponent(req.params.path ?? "");
     const path = decoded.startsWith("/") ? decoded : `/${decoded}`;
     const data = seoPageUpdate.parse(req.body ?? {});
-    const { keywords, ...rest } = data;
+    const { keywords, secondaryKeywords, ...rest } = data;
     // For upsert, drop the path from `rest` if present (we use the URL param).
     delete (rest as Record<string, unknown>).path;
     const page = await prisma.seoPage.upsert({
@@ -305,11 +327,15 @@ seoRouter.put(
       update: {
         ...rest,
         ...(keywords !== undefined ? { keywords: keywords as Prisma.InputJsonValue } : {}),
+        ...(secondaryKeywords !== undefined
+          ? { secondaryKeywords: secondaryKeywords as Prisma.InputJsonValue }
+          : {}),
       },
       create: {
         path,
         title: rest.title ?? null,
         description: rest.description ?? null,
+        primaryKeyword: rest.primaryKeyword ?? null,
         ogTitle: rest.ogTitle ?? null,
         ogDescription: rest.ogDescription ?? null,
         ogImage: rest.ogImage ?? null,
@@ -317,6 +343,7 @@ seoRouter.put(
         noIndex: rest.noIndex ?? false,
         noFollow: rest.noFollow ?? false,
         keywords: (keywords ?? []) as Prisma.InputJsonValue,
+        secondaryKeywords: (secondaryKeywords ?? []) as Prisma.InputJsonValue,
       },
     });
     res.json({ page });
@@ -382,6 +409,8 @@ const contentSeoSelect = {
   seoDescription: true,
   seoOgImage: true,
   seoKeywords: true,
+  seoPrimaryKeyword: true,
+  seoSecondaryKeywords: true,
   seoOgTitle: true,
   seoOgDescription: true,
   seoCanonicalUrl: true,
@@ -421,7 +450,7 @@ for (const [urlSegment, modelKey] of Object.entries(collectionMap)) {
     `/${urlSegment}/:id`,
     asyncHandler(async (req, res) => {
       const data = collectionSeoSchema.parse(req.body ?? {});
-      const { seoKeywords, ...rest } = data;
+      const { seoKeywords, seoSecondaryKeywords, ...rest } = data;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const m = (prisma as unknown as Record<string, any>)[modelKey];
       const updated = await m.update({
@@ -429,6 +458,9 @@ for (const [urlSegment, modelKey] of Object.entries(collectionMap)) {
         data: {
           ...rest,
           ...(seoKeywords !== undefined ? { seoKeywords: seoKeywords as Prisma.InputJsonValue } : {}),
+          ...(seoSecondaryKeywords !== undefined
+            ? { seoSecondaryKeywords: seoSecondaryKeywords as Prisma.InputJsonValue }
+            : {}),
         },
       });
       res.json({ item: updated });
@@ -448,6 +480,29 @@ function clip(text: string, max: number): string {
   return lastSpace > 80 ? slice.slice(0, lastSpace).trim() : slice.trim();
 }
 
+// Split a legacy seoKeywords array into a primary keyword + secondary keywords.
+// Returns null when the row already has a primary keyword or the legacy list is
+// empty, so callers can skip writing.
+function splitLegacyKeywords(
+  existingPrimary: string | null,
+  existingSecondary: unknown,
+  legacy: unknown,
+): { seoPrimaryKeyword: string; seoSecondaryKeywords: string[] } | null {
+  if (existingPrimary && existingPrimary.trim()) return null;
+  const arr = Array.isArray(legacy)
+    ? legacy.filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+    : [];
+  if (arr.length === 0) return null;
+  const primary = arr[0].trim();
+  const restRaw = arr.slice(1);
+  const existingSecondaryArr = Array.isArray(existingSecondary)
+    ? existingSecondary.filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+    : [];
+  // Merge legacy tail with whatever is already in secondary, dedupe.
+  const merged = sanitizeSecondaryKeywords([...existingSecondaryArr, ...restRaw]);
+  return { seoPrimaryKeyword: primary, seoSecondaryKeywords: merged };
+}
+
 seoRouter.post(
   "/bulk-generate",
   asyncHandler(async (_req, res) => {
@@ -461,13 +516,24 @@ seoRouter.post(
       const items = await prisma.project.findMany();
       let updated = 0;
       for (const it of items) {
-        if (it.seoTitle && it.seoDescription) continue;
+        const split = splitLegacyKeywords(it.seoPrimaryKeyword, it.seoSecondaryKeywords, it.seoKeywords);
+        const needsCore = !it.seoTitle || !it.seoDescription;
+        if (!needsCore && !split) continue;
         const title = it.seoTitle ?? `${it.title} | ${siteName}`;
         const description =
           it.seoDescription ?? clip(it.summary || it.description || it.title, 155);
         await prisma.project.update({
           where: { id: it.id },
-          data: { seoTitle: title, seoDescription: description },
+          data: {
+            seoTitle: title,
+            seoDescription: description,
+            ...(split
+              ? {
+                  seoPrimaryKeyword: split.seoPrimaryKeyword,
+                  seoSecondaryKeywords: split.seoSecondaryKeywords as Prisma.InputJsonValue,
+                }
+              : {}),
+          },
         });
         updated += 1;
       }
@@ -479,12 +545,23 @@ seoRouter.post(
       const items = await prisma.service.findMany();
       let updated = 0;
       for (const it of items) {
-        if (it.seoTitle && it.seoDescription) continue;
+        const split = splitLegacyKeywords(it.seoPrimaryKeyword, it.seoSecondaryKeywords, it.seoKeywords);
+        const needsCore = !it.seoTitle || !it.seoDescription;
+        if (!needsCore && !split) continue;
         const title = it.seoTitle ?? `${it.title} | ${siteName}`;
         const description = it.seoDescription ?? clip(it.summary || it.body || it.title, 155);
         await prisma.service.update({
           where: { id: it.id },
-          data: { seoTitle: title, seoDescription: description },
+          data: {
+            seoTitle: title,
+            seoDescription: description,
+            ...(split
+              ? {
+                  seoPrimaryKeyword: split.seoPrimaryKeyword,
+                  seoSecondaryKeywords: split.seoSecondaryKeywords as Prisma.InputJsonValue,
+                }
+              : {}),
+          },
         });
         updated += 1;
       }
@@ -496,7 +573,9 @@ seoRouter.post(
       const items = await prisma.article.findMany();
       let updated = 0;
       for (const it of items) {
-        if (it.seoTitle && it.seoDescription) continue;
+        const split = splitLegacyKeywords(it.seoPrimaryKeyword, it.seoSecondaryKeywords, it.seoKeywords);
+        const needsCore = !it.seoTitle || !it.seoDescription;
+        if (!needsCore && !split) continue;
         const title = it.seoTitle ?? `${it.title} | ${siteName}`;
         const description = it.seoDescription ?? clip(it.excerpt || it.body || it.title, 155);
         const keywords =
@@ -511,6 +590,16 @@ seoRouter.post(
             seoTitle: title,
             seoDescription: description,
             seoKeywords: keywords as Prisma.InputJsonValue,
+            ...(split
+              ? {
+                  seoPrimaryKeyword: split.seoPrimaryKeyword,
+                  seoSecondaryKeywords: split.seoSecondaryKeywords as Prisma.InputJsonValue,
+                }
+              : it.seoPrimaryKeyword
+                ? {}
+                : it.category
+                  ? { seoPrimaryKeyword: it.category }
+                  : {}),
           },
         });
         updated += 1;

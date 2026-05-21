@@ -45,18 +45,20 @@ model Project {
   coverImageAlt     String?
   gallery           Json     @default("[]") // [{ url, alt }]
   highlights        Json     @default("[]") // string[]
-  seoTitle          String?
-  seoDescription    String?
-  seoOgImage        String?
-  seoKeywords       Json     @default("[]") // string[]
-  seoOgTitle        String?
-  seoOgDescription  String?
-  seoCanonicalUrl   String?
-  seoNoIndex        Boolean  @default(false)
-  seoNoFollow       Boolean  @default(false)
-  sortOrder         Int      @default(0)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  seoTitle             String?
+  seoDescription       String?
+  seoOgImage           String?
+  seoKeywords          Json     @default("[]") // string[] — legacy, kept for 1 release
+  seoPrimaryKeyword    String?
+  seoSecondaryKeywords Json     @default("[]") // string[]
+  seoOgTitle           String?
+  seoOgDescription     String?
+  seoCanonicalUrl      String?
+  seoNoIndex           Boolean  @default(false)
+  seoNoFollow          Boolean  @default(false)
+  sortOrder            Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model Service {
@@ -66,20 +68,22 @@ model Service {
   summary           String
   icon              String?
   iconAlt           String?
-  bullets           Json     @default("[]") // string[]
-  body              String   @default("")
-  seoTitle          String?
-  seoDescription    String?
-  seoOgImage        String?
-  seoKeywords       Json     @default("[]") // string[]
-  seoOgTitle        String?
-  seoOgDescription  String?
-  seoCanonicalUrl   String?
-  seoNoIndex        Boolean  @default(false)
-  seoNoFollow       Boolean  @default(false)
-  sortOrder         Int      @default(0)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  bullets              Json     @default("[]") // string[]
+  body                 String   @default("")
+  seoTitle             String?
+  seoDescription       String?
+  seoOgImage           String?
+  seoKeywords          Json     @default("[]") // string[] — legacy, kept for 1 release
+  seoPrimaryKeyword    String?
+  seoSecondaryKeywords Json     @default("[]") // string[]
+  seoOgTitle           String?
+  seoOgDescription     String?
+  seoCanonicalUrl      String?
+  seoNoIndex           Boolean  @default(false)
+  seoNoFollow          Boolean  @default(false)
+  sortOrder            Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model Article {
@@ -92,19 +96,21 @@ model Article {
   coverAlt          String?
   author            String
   category          String?
-  publishedAt       DateTime @default(now())
-  seoTitle          String?
-  seoDescription    String?
-  seoOgImage        String?
-  seoKeywords       Json     @default("[]") // string[]
-  seoOgTitle        String?
-  seoOgDescription  String?
-  seoCanonicalUrl   String?
-  seoNoIndex        Boolean  @default(false)
-  seoNoFollow       Boolean  @default(false)
-  sortOrder         Int      @default(0)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  publishedAt          DateTime @default(now())
+  seoTitle             String?
+  seoDescription       String?
+  seoOgImage           String?
+  seoKeywords          Json     @default("[]") // string[] — legacy, kept for 1 release
+  seoPrimaryKeyword    String?
+  seoSecondaryKeywords Json     @default("[]") // string[]
+  seoOgTitle           String?
+  seoOgDescription     String?
+  seoCanonicalUrl      String?
+  seoNoIndex           Boolean  @default(false)
+  seoNoFollow          Boolean  @default(false)
+  sortOrder            Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model Leader {
@@ -113,20 +119,22 @@ model Leader {
   name              String
   role              String
   bio               String   @default("")
-  portrait          String?
-  portraitAlt       String?
-  seoTitle          String?
-  seoDescription    String?
-  seoOgImage        String?
-  seoKeywords       Json     @default("[]") // string[]
-  seoOgTitle        String?
-  seoOgDescription  String?
-  seoCanonicalUrl   String?
-  seoNoIndex        Boolean  @default(false)
-  seoNoFollow       Boolean  @default(false)
-  sortOrder         Int      @default(0)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  portrait             String?
+  portraitAlt          String?
+  seoTitle             String?
+  seoDescription       String?
+  seoOgImage           String?
+  seoKeywords          Json     @default("[]") // string[] — legacy, kept for 1 release
+  seoPrimaryKeyword    String?
+  seoSecondaryKeywords Json     @default("[]") // string[]
+  seoOgTitle           String?
+  seoOgDescription     String?
+  seoCanonicalUrl      String?
+  seoNoIndex           Boolean  @default(false)
+  seoNoFollow          Boolean  @default(false)
+  sortOrder            Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model Location {
@@ -171,7 +179,9 @@ model Page {
   seoDescription        String?
   seoOgImage            String?
   // Advanced SEO
-  seoKeywords           String?  // comma-separated
+  seoKeywords           String?  // comma-separated — legacy, kept for 1 release
+  seoPrimaryKeyword     String?
+  seoSecondaryKeywords  String?  // comma-separated
   seoRobots             String?  // e.g. "index,follow" or "noindex,nofollow"
   seoCanonical          String?  // override canonical URL
   // Open Graph (overrides the seo* values when set)
@@ -210,10 +220,12 @@ model Redirect {
 // that don't have a CMS Page document (e.g. /services, /contact, /legal/*).
 model SeoPage {
   id              String   @id @default(cuid())
-  path            String   @unique
-  title           String?
-  description     String?
-  keywords        Json     @default("[]") // string[]
+  path              String   @unique
+  title             String?
+  description       String?
+  keywords          Json     @default("[]") // string[] — legacy, kept for 1 release
+  primaryKeyword    String?
+  secondaryKeywords Json     @default("[]") // string[]
   ogTitle         String?
   ogDescription   String?
   ogImage         String?
