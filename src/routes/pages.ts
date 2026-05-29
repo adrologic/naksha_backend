@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../db.js";
 import { asyncHandler } from "../lib/asyncHandler.js";
 import { deepSanitizeHtmlStrings } from "../lib/sanitize.js";
+import { mirrorPageToSeoPage } from "../lib/seoPageMirror.js";
 
 export const pagesRouter = Router();
 
@@ -75,6 +76,9 @@ pagesRouter.post(
     const created = await prisma.page.create({
       data: { ...data, blocks: cleanBlocks as Prisma.InputJsonValue },
     });
+    // Keep the path-keyed SeoPage row in sync so editing this page anywhere
+    // (CMS Pages editor or SEO admin) reads/writes one source of truth.
+    await mirrorPageToSeoPage(created.path, data).catch(() => undefined);
     res.status(201).json(created);
   }),
 );
@@ -103,6 +107,9 @@ pagesRouter.patch(
         })
         .catch(() => undefined);
     }
+    // Sync the SEO fields to the path-keyed SeoPage row so both surfaces
+    // show identical values right after the save.
+    await mirrorPageToSeoPage(updated.path, parsed).catch(() => undefined);
     res.json(updated);
   }),
 );

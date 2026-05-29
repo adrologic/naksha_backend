@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../db.js";
 import { asyncHandler } from "../lib/asyncHandler.js";
 import { secondaryKeywordsField, sanitizeSecondaryKeywords } from "../lib/seoFields.js";
+import { mirrorSeoPageToPage } from "../lib/seoPageMirror.js";
 
 export const seoRouter = Router();
 
@@ -278,6 +279,7 @@ seoRouter.post(
         secondaryKeywords: data.secondaryKeywords as Prisma.InputJsonValue,
       },
     });
+    await mirrorSeoPageToPage(created.path, data).catch(() => undefined);
     res.status(201).json({ page: created });
   }),
 );
@@ -297,6 +299,7 @@ seoRouter.patch(
           : {}),
       },
     });
+    await mirrorSeoPageToPage(page.path, data).catch(() => undefined);
     res.json({ page });
   }),
 );
@@ -346,6 +349,7 @@ seoRouter.put(
         secondaryKeywords: (secondaryKeywords ?? []) as Prisma.InputJsonValue,
       },
     });
+    await mirrorSeoPageToPage(page.path, data).catch(() => undefined);
     res.json({ page });
   }),
 );
