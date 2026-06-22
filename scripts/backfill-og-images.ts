@@ -2,7 +2,7 @@
  * One-shot backfill: ensure every CMS row that ships a cover image also ships
  * an og:image. Targets the four content collections, the path-keyed SeoPage
  * rows, and the CMS Page documents at /projects/<slug>, /services/<slug>,
- * /insights/<slug>, /about/<slug>.
+ * /blog/<slug>, /about/<slug>.
  *
  * Idempotent: only touches rows whose og field is null or empty string.
  * Re-running reports zero updated.
@@ -88,7 +88,7 @@ async function buildPathOgMap(): Promise<Map<string, string>> {
   };
   for (const p of projects) add(`/projects/${p.slug}`, toOgUrl(p.seoOgImage) || toOgUrl(p.coverImage));
   for (const s of services) add(`/services/${s.slug}`, toOgUrl(s.seoOgImage) || toOgUrl(s.icon));
-  for (const a of articles) add(`/insights/${a.slug}`, toOgUrl(a.seoOgImage) || toOgUrl(a.cover));
+  for (const a of articles) add(`/blog/${a.slug}`, toOgUrl(a.seoOgImage) || toOgUrl(a.cover));
   for (const l of leaders)  add(`/about/${l.slug}`,    toOgUrl(l.seoOgImage) || toOgUrl(l.portrait));
   return map;
 }

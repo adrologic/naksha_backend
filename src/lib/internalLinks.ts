@@ -24,7 +24,7 @@ function url(type: InternalDocType, slug: string, pagePath?: string): string {
     case "service":
       return `/services/${slug}`;
     case "article":
-      return `/insights/${slug}`;
+      return `/blog/${slug}`;
     case "location":
       return `/locations/${slug}`;
   }
