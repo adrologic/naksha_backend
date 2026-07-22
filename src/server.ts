@@ -20,9 +20,15 @@ import { redirectsRouter } from "./routes/redirects.js";
 import { contactRouter } from "./routes/contact.js";
 import { seoRouter } from "./routes/seo.js";
 import { internalLinksRouter } from "./routes/internalLinks.js";
+import { authRouter } from "./routes/auth.js";
+import { protectApi } from "./middleware/requireAuth.js";
 
 export function createServer() {
   const app = express();
+
+  // Behind Coolify's reverse proxy; without this req.ip is the proxy's address
+  // and the login throttle would count every attempt against one bucket.
+  app.set("trust proxy", 1);
 
   app.use(helmet());
   app.use(
@@ -54,6 +60,11 @@ export function createServer() {
   });
 
   app.use("/health", healthRouter);
+  app.use("/auth", authRouter);
+
+  // Everything below requires an admin token for any state-changing request,
+  // and for the handful of GETs that are admin-only. Public reads pass through.
+  app.use(protectApi);
 
   // Content collections
   app.use("/projects", projectsRouter);

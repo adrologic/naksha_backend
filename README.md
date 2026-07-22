@@ -14,11 +14,43 @@ npm run prisma:migrate -- --name init   # creates all tables on Neon
 npm run dev                              # starts server on :4000
 ```
 
+## Auth
+
+Single admin user, credentials from the environment:
+
+```bash
+npx tsx scripts/hash-password.ts 'the-password'   # prints ADMIN_PASSWORD_HASH + AUTH_SECRET
+```
+
+Set `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH` and `AUTH_SECRET` (see `.env.example`).
+`POST /auth/login` returns a signed, stateless token that the admin sends as
+`Authorization: Bearer <token>`; it expires after `AUTH_TOKEN_TTL_HOURS`
+(default 12). Changing `AUTH_SECRET` invalidates every issued token.
+
+What is protected:
+
+| | |
+|---|---|
+| Public | all `GET`s the website reads (collections, pages, globals, redirects, SEO), plus `POST /contact` and `/health` |
+| Admin only | every `POST`/`PUT`/`PATCH`/`DELETE`, plus `GET /contact` (inbox) and `GET /internal-links` |
+
+Reads stay open on purpose: the public site fetches this API anonymously, so
+gating them would take the site offline. If the auth variables are missing the
+server still boots and serves those reads, but `/auth/login` returns 503 and
+every write returns 401 — the CMS locks, the site does not.
+
+Failed logins are throttled per IP (8 per 15 minutes, in-memory).
+
 ## Endpoints
 
 ### System
 - `GET /` — service info
 - `GET /health` — server + database status
+
+### Auth
+- `POST /auth/login` `{ email, password }` → `{ token, expiresAt, user }`
+- `GET /auth/me` — current admin (requires token)
+- `POST /auth/logout` — client-side token drop; tokens are stateless
 
 ### Content collections (CRUD)
 - `/projects` — list / `:id` / `by-slug/:slug` / POST / PATCH / DELETE
