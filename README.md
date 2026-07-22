@@ -23,6 +23,9 @@ npx tsx scripts/hash-password.ts 'the-password'   # prints ADMIN_PASSWORD_HASH +
 ```
 
 Set `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH` and `AUTH_SECRET` (see `.env.example`).
+The hash is colon-separated (`scrypt:N:salt:hash`) rather than the usual `$`
+form, because Docker Compose interpolates `$FOO` and would silently truncate it.
+Paste the whole value; if it arrives malformed the startup log says so by name.
 `POST /auth/login` returns a signed, stateless token that the admin sends as
 `Authorization: Bearer <token>`; it expires after `AUTH_TOKEN_TTL_HOURS`
 (default 12). Changing `AUTH_SECRET` invalidates every issued token.

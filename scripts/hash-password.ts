@@ -18,5 +18,5 @@ const N = 16384;
 const salt = randomBytes(16);
 const hash = scryptSync(password, salt, 64, { N });
 
-console.log(`ADMIN_PASSWORD_HASH=scrypt$${N}$${salt.toString("hex")}$${hash.toString("hex")}`);
+console.log(`ADMIN_PASSWORD_HASH=scrypt:${N}:${salt.toString("hex")}:${hash.toString("hex")}`);
 console.log(`AUTH_SECRET=${randomBytes(48).toString("base64url")}`);
