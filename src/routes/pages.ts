@@ -4,7 +4,13 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../db.js";
 import { asyncHandler } from "../lib/asyncHandler.js";
 import { deepSanitizeHtmlStrings } from "../lib/sanitize.js";
+import { normalizeBlockHeadingLevels } from "../lib/blockHeadings.js";
 import { mirrorPageToSeoPage } from "../lib/seoPageMirror.js";
+
+/** Sanitize rich-text strings, then drop any out-of-range heading-tag value. */
+function cleanBlocks(blocks: unknown): unknown[] {
+  return normalizeBlockHeadingLevels(deepSanitizeHtmlStrings(blocks)) as unknown[];
+}
 
 export const pagesRouter = Router();
 
@@ -72,9 +78,8 @@ pagesRouter.post(
   "/",
   asyncHandler(async (req, res) => {
     const data = upsertSchema.parse(req.body);
-    const cleanBlocks = deepSanitizeHtmlStrings(data.blocks) as unknown[];
     const created = await prisma.page.create({
-      data: { ...data, blocks: cleanBlocks as Prisma.InputJsonValue },
+      data: { ...data, blocks: cleanBlocks(data.blocks) as Prisma.InputJsonValue },
     });
     // Keep the path-keyed SeoPage row in sync so editing this page anywhere
     // (CMS Pages editor or SEO admin) reads/writes one source of truth.
@@ -88,7 +93,7 @@ pagesRouter.patch(
   asyncHandler(async (req, res) => {
     const parsed = updateSchema.parse(req.body);
     const { blocks: rawBlocks, ...rest } = parsed;
-    const blocks = rawBlocks !== undefined ? (deepSanitizeHtmlStrings(rawBlocks) as unknown[]) : undefined;
+    const blocks = rawBlocks !== undefined ? cleanBlocks(rawBlocks) : undefined;
     const before = await prisma.page.findUnique({ where: { id: req.params.id } });
     if (!before) return res.status(404).json({ error: "not_found" });
     const updated = await prisma.page.update({
