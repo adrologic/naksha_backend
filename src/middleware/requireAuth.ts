@@ -47,6 +47,7 @@ const PUBLIC_POST_PATHS = [/^\/contact\/?$/];
 const PRIVATE_GET_PATHS = [
   /^\/contact\/?$/, // contact inbox — names, emails, phone numbers
   /^\/internal-links/, // full index of every document in the CMS
+  /^\/api\/analytics\//, // traffic/heatmap dashboard reads — not for public consumption
 ];
 
 export const protectApi: RequestHandler = (req, res, next) => {

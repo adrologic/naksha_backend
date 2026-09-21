@@ -21,6 +21,8 @@ import { contactRouter } from "./routes/contact.js";
 import { seoRouter } from "./routes/seo.js";
 import { internalLinksRouter } from "./routes/internalLinks.js";
 import { authRouter } from "./routes/auth.js";
+import { analyticsPublicRouter } from "./routes/analyticsPublic.js";
+import { analyticsRouter } from "./routes/analytics.js";
 import { protectApi } from "./middleware/requireAuth.js";
 
 export function createServer() {
@@ -49,7 +51,7 @@ export function createServer() {
       const ok = res.statusCode >= 200 && res.statusCode < 300;
       if (!mutating || !ok) return;
       const p = req.path;
-      if (p.startsWith("/health") || p.startsWith("/uploads") || p.startsWith("/contact")) return;
+      if (p.startsWith("/health") || p.startsWith("/uploads") || p.startsWith("/contact") || p.startsWith("/analytics")) return;
       revalidateWebsite({ layout: true });
     });
     next();
@@ -61,6 +63,11 @@ export function createServer() {
 
   app.use("/health", healthRouter);
   app.use("/auth", authRouter);
+
+  // Analytics ingestion + the public tracking-enabled flag — unauthenticated
+  // by design (the public site posts here), so mounted ahead of protectApi
+  // rather than added to its allow-lists.
+  app.use("/analytics", analyticsPublicRouter);
 
   // Everything below requires an admin token for any state-changing request,
   // and for the handful of GETs that are admin-only. Public reads pass through.
@@ -87,6 +94,9 @@ export function createServer() {
 
   // SEO management API (global settings, page overrides, schemas, content coverage).
   app.use("/api/seo", seoRouter);
+
+  // Analytics + heatmap dashboard reads (admin-only — see PRIVATE_GET_PATHS).
+  app.use("/api/analytics", analyticsRouter);
 
   app.use((_req, res) => {
     res.status(404).json({ error: "not_found" });

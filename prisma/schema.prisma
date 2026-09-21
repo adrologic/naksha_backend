@@ -247,3 +247,85 @@ model ContactSubmission {
   meta      Json     @default("{}")
   createdAt DateTime @default(now())
 }
+
+// ── Analytics + heatmap (first-party tracking) ───────────────────────────────
+// No PII is stored: no raw IPs, no full user-agent strings, no form contents —
+// only opaque client-generated tokens, coarse device/geo categories, and
+// structural click metadata.
+
+model AnalyticsVisitor {
+  id            String   @id @default(cuid())
+  visitorId     String   @unique // opaque token, long-lived (localStorage)
+  firstSeenAt   DateTime @default(now())
+  lastSeenAt    DateTime @default(now())
+  sessionsCount Int      @default(0)
+}
+
+model AnalyticsSession {
+  id              String   @id @default(cuid())
+  sessionId       String   @unique // opaque token, per browser tab session
+  visitorId       String
+  startedAt       DateTime @default(now())
+  lastSeenAt      DateTime @default(now())
+  entryPath       String
+  exitPath        String?
+  referrer        String?
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  trafficSource   String   @default("direct") // organic | direct | social | referral | paid | other
+  deviceType      String   @default("desktop") // mobile | tablet | desktop
+  browser         String?
+  os              String?
+  country         String?
+  region          String?
+  durationSeconds Int      @default(0)
+  pageViewCount   Int      @default(0)
+  isBounce        Boolean  @default(true)
+
+  @@index([startedAt])
+  @@index([visitorId])
+  @@index([lastSeenAt])
+}
+
+model PageView {
+  id              String   @id @default(cuid())
+  sessionId       String
+  path            String
+  title           String?
+  enteredAt       DateTime @default(now())
+  durationSeconds Int      @default(0)
+  scrollDepthMax  Int      @default(0)
+
+  @@index([sessionId])
+  @@index([path, enteredAt])
+}
+
+model AnalyticsEvent {
+  id             String   @id @default(cuid())
+  sessionId      String
+  path           String
+  type           String // click | button_click | link_click | form_start | form_submit | search | conversion
+  targetSelector String?
+  targetText     String?
+  meta           Json     @default("{}")
+  createdAt      DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([type, createdAt])
+  @@index([path, type])
+}
+
+model HeatmapEvent {
+  id         String   @id @default(cuid())
+  sessionId  String
+  path       String
+  type       String // click | rage_click | dead_click | scroll
+  xPct       Float
+  yPct       Float
+  deviceType String   @default("desktop")
+  createdAt  DateTime @default(now())
+
+  @@index([path, type, deviceType])
+  @@index([path, createdAt])
+}
